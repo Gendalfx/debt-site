@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Віддай борг</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f8ff; /* Світлий фон */
+            color: #333;
+        }
+        header {
+            background-color: #d9534f; /* Червоний колір заголовка */
+            padding: 20px 0;
+            color: white;
+            font-size: 2.5em;
+        }
+        #debt-amount {
+            font-size: 4em; /* Збільшений шрифт для кращої видимості */
+            color: #d9534f; /* Червоний колір для суми боргу */
+            margin: 20px 0;
+        }
+        .stat {
+            margin: 20px 0;
+            font-size: 1.5em;
+            background-color: #fff; /* Білий фон для статистик */
+            padding: 15px;
+            border-radius: 8px; /* Закруглені кути */
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Тінь */
+        }
+        .footer {
+            margin-top: 50px;
+            font-size: 0.9em;
+            color: #777;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            padding: 20px;
+            border-radius: 10px; /* Закруглені кути */
+            background-color: #ffffff; /* Білий фон */
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1); /* Тінь */
+        }
+    </style>
+</head>
+<body>
+    <header>
+        Віддай борг
+    </header>
+    <div class="container">
+        <div id="debt-amount">₴<span id="debt">1800.0000</span></div> <!-- Збільшена кількість знаків -->
+        
+        <div class="stat">Початок відліку: <span id="start-time"></span></div>
+        <div class="stat">Кількість днів: <span id="days-counter">0</span></div>
+        <div class="stat">Загальна сума накопичена: ₴<span id="total-accumulated">1800.0000</span></div>
+
+        <div id="report">Звіт: <span id="report-time"></span></div>
+    </div>
+
+    <img src="images/debt-image.jpg" alt="Віддай борг" style="max-width: 100%; height: auto; display: block; margin: 20px auto;">
+
+    <script>
+        const debtElement = document.getElementById("debt");
+        const reportTimeElement = document.getElementById("report-time");
+        const startTimeElement = document.getElementById("start-time");
+        const daysCounterElement = document.getElementById("days-counter");
+        const totalAccumulatedElement = document.getElementById("total-accumulated");
+
+        const initialDebt = 1800.0000; // Початкова сума боргу
+        const increaseAmountPerSecond = 90 / 86400; // Сума, що додається кожну секунду
+        const startTime = new Date(); // Зберігаємо дату початку
+
+        // Ініціалізація Local Storage, якщо дані не збережені
+        if (!localStorage.getItem("startTime")) {
+            localStorage.setItem("startTime", startTime.toISOString());
+            localStorage.setItem("debt", initialDebt.toFixed(4));
+            localStorage.setItem("lastUpdate", Date.now().toString());
+        }
+
+        // Функція для оновлення боргу, часу останнього оновлення і статистики
+        function updateDebt() {
+            const now = Date.now();
+            let currentDebt = parseFloat(localStorage.getItem("debt")) || initialDebt;
+            const lastUpdateTimestamp = parseInt(localStorage.getItem("lastUpdate")) || now;
+
+            // Розрахунок часу, що пройшов з останнього оновлення
+            const elapsedTime = (now - lastUpdateTimestamp) / 1000; // в секундах
+            const newDebt = (currentDebt + elapsedTime * increaseAmountPerSecond).toFixed(4); // Додаємо і округлюємо до 4 знаків
+            debtElement.innerText = newDebt;
+
+            // Оновлення Local Storage
+            localStorage.setItem("debt", newDebt);
+            localStorage.setItem("lastUpdate", now.toString());
+
+            // Оновлення загальної суми накопиченої
+            totalAccumulatedElement.innerText = newDebt;
+        }
+
+        // Функція для оновлення звіту
+        function updateReportTime() {
+            const now = Date.now();
+            const lastUpdateTimestamp = parseInt(localStorage.getItem("lastUpdate")) || now;
+            reportTimeElement.innerText = new Date(lastUpdateTimestamp).toLocaleString();
+        }
+
+        // Функція для оновлення статистики
+        function updateStatistics() {
+            const startTime = new Date(localStorage.getItem("startTime"));
+            startTimeElement.innerText = startTime.toLocaleString();
+
+            const now = Date.now();
+            const daysPassed = Math.floor((now - startTime) / (1000 * 60 * 60 * 24));
+            daysCounterElement.innerText = daysPassed;
+        }
+
+        // Оновлюємо борг, звіт та статистику при завантаженні сторінки
+        updateDebt();
+        updateReportTime();
+        updateStatistics();
+
+        // Оновлюємо дані кожну секунду
+        setInterval(() => {
+            updateDebt();
+            updateReportTime();
+            updateStatistics();
+        }, 1000);
+    </script>
+</body>
+</html>
